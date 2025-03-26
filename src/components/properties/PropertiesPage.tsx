@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AddPropertyForm } from "./AddPropertyForm";
 
 function PropertyCard({ property }: { property: Property }) {
   return (
@@ -85,6 +86,7 @@ function PropertyCard({ property }: { property: Property }) {
 
 export default function PropertiesPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
   
   const filteredProperties = properties.filter(
     (property) =>
@@ -100,7 +102,7 @@ export default function PropertiesPage() {
           title="Properties"
           description="Manage your rental properties"
         />
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => setShowAddForm(true)}>
           <Plus className="h-4 w-4" />
           <span>Add Property</span>
         </Button>
@@ -126,7 +128,7 @@ export default function PropertiesPage() {
             <p className="text-muted-foreground mt-1">
               Try adjusting your search or add a new property.
             </p>
-            <Button className="mt-4">
+            <Button className="mt-4" onClick={() => setShowAddForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Property
             </Button>
@@ -139,6 +141,11 @@ export default function PropertiesPage() {
           ))}
         </Grid>
       )}
+      
+      <AddPropertyForm 
+        open={showAddForm} 
+        onOpenChange={setShowAddForm} 
+      />
     </AppLayout>
   );
 }

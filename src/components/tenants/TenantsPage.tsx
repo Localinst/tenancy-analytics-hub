@@ -31,10 +31,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AddTenantForm } from "./AddTenantForm";
 
 export default function TenantsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showAddForm, setShowAddForm] = useState(false);
   
   const getPropertyName = (propertyId: string) => {
     const property = properties.find(p => p.id === propertyId);
@@ -66,7 +68,7 @@ export default function TenantsPage() {
           title="Tenants"
           description="Manage your property tenants"
         />
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => setShowAddForm(true)}>
           <Plus className="h-4 w-4" />
           <span>Add Tenant</span>
         </Button>
@@ -105,7 +107,7 @@ export default function TenantsPage() {
             <p className="text-muted-foreground mt-1">
               Try adjusting your search or add a new tenant.
             </p>
-            <Button className="mt-4">
+            <Button className="mt-4" onClick={() => setShowAddForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Tenant
             </Button>
@@ -176,6 +178,11 @@ export default function TenantsPage() {
           </div>
         )}
       </CardContainer>
+      
+      <AddTenantForm 
+        open={showAddForm} 
+        onOpenChange={setShowAddForm} 
+      />
     </AppLayout>
   );
 }

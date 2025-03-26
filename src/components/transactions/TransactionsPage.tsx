@@ -43,10 +43,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AddTransactionForm } from "./AddTransactionForm";
 
 export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showAddForm, setShowAddForm] = useState(false);
   
   const getPropertyName = (propertyId: string) => {
     const property = properties.find(p => p.id === propertyId);
@@ -78,7 +80,7 @@ export default function TransactionsPage() {
           title="Transactions"
           description="Manage your rental income and expenses"
         />
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => setShowAddForm(true)}>
           <Plus className="h-4 w-4" />
           <span>Add Transaction</span>
         </Button>
@@ -116,7 +118,7 @@ export default function TransactionsPage() {
             <p className="text-muted-foreground mt-1">
               Try adjusting your search or add a new transaction.
             </p>
-            <Button className="mt-4">
+            <Button className="mt-4" onClick={() => setShowAddForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </Button>
@@ -200,6 +202,11 @@ export default function TransactionsPage() {
           </div>
         )}
       </CardContainer>
+      
+      <AddTransactionForm 
+        open={showAddForm} 
+        onOpenChange={setShowAddForm} 
+      />
     </AppLayout>
   );
 }
