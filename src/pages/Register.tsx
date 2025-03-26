@@ -35,8 +35,8 @@ const registerSchema = z
         "La password deve contenere almeno una lettera maiuscola, una minuscola e un numero"
       ),
     confirmPassword: z.string().min(1, "Conferma la password"),
-    termsAccepted: z.literal(true, {
-      errorMap: () => ({ message: "Devi accettare i termini e le condizioni" }),
+    termsAccepted: z.boolean().refine((val) => val === true, {
+      message: "Devi accettare i termini e le condizioni",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
