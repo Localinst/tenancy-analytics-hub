@@ -58,10 +58,12 @@ export function CardContainer({
 
 export function Grid({ 
   children, 
-  cols = 1 
+  cols = 1,
+  className
 }: { 
   children: React.ReactNode; 
   cols?: 1 | 2 | 3 | 4;
+  className?: string;
 }) {
   const gridCols = {
     1: "grid-cols-1",
@@ -71,7 +73,7 @@ export function Grid({
   };
 
   return (
-    <div className={cn("grid gap-6", gridCols[cols])}>
+    <div className={cn("grid gap-6", gridCols[cols], className)}>
       {children}
     </div>
   );
