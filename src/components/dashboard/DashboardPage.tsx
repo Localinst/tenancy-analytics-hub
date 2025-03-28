@@ -14,7 +14,7 @@ import {
   Bar,
   Legend
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Building2, Users, DollarSign } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Building2, Users, DollarSign, ChartLine } from "lucide-react";
 import { 
   AppLayout, 
   PageHeader, 
@@ -31,6 +31,9 @@ import {
   getDashboardSummary
 } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 
 // Stat card for summary metrics
 function StatCard({
@@ -83,12 +86,30 @@ function StatCard({
 // Chart components
 function IncomeChart() {
   const data = getIncomeStats();
+  const [showNet, setShowNet] = useState(false);
+  
+  const processedData = data.map(item => ({
+    ...item,
+    net: item.income - item.expenses
+  }));
   
   return (
     <CardContainer className="h-[400px]">
-      <SectionHeader title="Income & Expenses" />
+      <div className="flex justify-between items-center mb-4">
+        <SectionHeader title={showNet ? "Income & Expenses (Net)" : "Income & Expenses (Gross)"} />
+        <div className="flex items-center gap-2">
+          <Toggle
+            pressed={showNet}
+            onPressedChange={setShowNet}
+            aria-label="Toggle view"
+            className="data-[state=on]:bg-primary"
+          >
+            {showNet ? "Show Gross" : "Show Net"}
+          </Toggle>
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height="90%">
-        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        <AreaChart data={processedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
@@ -98,25 +119,46 @@ function IncomeChart() {
               <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
               <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
             </linearGradient>
+            <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+            </linearGradient>
           </defs>
           <XAxis dataKey="name" />
           <YAxis />
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <Tooltip />
-          <Area
-            type="monotone"
-            dataKey="income"
-            stroke="#3b82f6"
-            fillOpacity={1}
-            fill="url(#colorIncome)"
-          />
-          <Area
-            type="monotone"
-            dataKey="expenses"
-            stroke="#ef4444"
-            fillOpacity={1}
-            fill="url(#colorExpenses)"
-          />
+          <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+          
+          {showNet ? (
+            <Area
+              type="monotone"
+              dataKey="net"
+              stroke="#10b981"
+              fillOpacity={1}
+              fill="url(#colorNet)"
+              name="Net Income"
+            />
+          ) : (
+            <>
+              <Area
+                type="monotone"
+                dataKey="income"
+                stroke="#3b82f6"
+                fillOpacity={1}
+                fill="url(#colorIncome)"
+                name="Income"
+              />
+              <Area
+                type="monotone"
+                dataKey="expenses"
+                stroke="#ef4444"
+                fillOpacity={1}
+                fill="url(#colorExpenses)"
+                name="Expenses"
+              />
+            </>
+          )}
+          <Legend />
         </AreaChart>
       </ResponsiveContainer>
     </CardContainer>
