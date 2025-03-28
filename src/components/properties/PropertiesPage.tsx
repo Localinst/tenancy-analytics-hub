@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, Search, Building2, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Building2, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
 import { properties, Property } from "@/lib/data";
 import { 
   AppLayout, 
@@ -11,12 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { ActionButton } from "@/components/ui/action-button";
+import { PropertyDetailDialog } from "./PropertyDetailDialog";
+import { DeletePropertyDialog } from "./DeletePropertyDialog";
 import {
   Card,
   CardContent,
@@ -27,73 +25,137 @@ import {
 } from "@/components/ui/card";
 import { AddPropertyForm } from "./AddPropertyForm";
 
-function PropertyCard({ property }: { property: Property }) {
+function PropertyCard({ property, onDelete }: { property: Property; onDelete: (id: string) => void }) {
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const { toast } = useToast();
+
+  const handleEdit = () => {
+    setShowEditForm(true);
+    toast({
+      title: "Edit mode",
+      description: `You are now editing "${property.name}" property.`,
+    });
+  };
+
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleView = () => {
+    setShowDetailDialog(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(property.id);
+  };
+
   return (
-    <Card className="overflow-hidden hover-scale">
-      <div className="relative h-48 w-full">
-        <img
-          src={property.image}
-          alt={property.name}
-          className="h-full w-full object-cover"
+    <>
+      <Card className="overflow-hidden hover-scale">
+        <div className="relative h-48 w-full">
+          <img
+            src={property.image}
+            alt={property.name}
+            className="h-full w-full object-cover"
+          />
+          <Badge className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm">
+            {property.type}
+          </Badge>
+        </div>
+        <CardHeader className="p-4">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-lg">{property.name}</CardTitle>
+          </div>
+          <CardDescription className="mt-1">{property.address}, {property.city}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <p className="text-muted-foreground">Units</p>
+              <p className="font-medium">{property.units}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Valuation</p>
+              <p className="font-medium">${property.value.toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="p-4 pt-0 flex justify-end gap-2">
+          <ActionButton 
+            icon={Eye} 
+            label="View" 
+            onClick={handleView} 
+            variant="secondary"
+            showLabel={false}
+            className="rounded-full h-9 w-9 p-0 flex items-center justify-center"
+            aria-label="View property details"
+          />
+          <ActionButton 
+            icon={Edit} 
+            label="Edit" 
+            onClick={handleEdit} 
+            variant="secondary"
+            showLabel={false}
+            className="rounded-full h-9 w-9 p-0 flex items-center justify-center"
+            aria-label="Edit property"
+          />
+          <ActionButton 
+            icon={Trash2} 
+            label="Delete" 
+            onClick={handleDelete}
+            variant="secondary"
+            showLabel={false}
+            className="rounded-full h-9 w-9 p-0 flex items-center justify-center"
+            aria-label="Delete property"
+          />
+        </CardFooter>
+      </Card>
+
+      {/* Property Detail Dialog */}
+      <PropertyDetailDialog 
+        property={property} 
+        open={showDetailDialog} 
+        onOpenChange={setShowDetailDialog} 
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeletePropertyDialog
+        property={property}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onDelete={confirmDelete}
+      />
+
+      {/* Edit Form Dialog would go here */}
+      {showEditForm && (
+        <AddPropertyForm 
+          open={showEditForm} 
+          onOpenChange={setShowEditForm}
+          property={property}
+          isEditing={true}
         />
-      </div>
-      <CardHeader className="p-4">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{property.name}</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <CardDescription className="mt-1">{property.address}, {property.city}</CardDescription>
-      </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-muted-foreground">Type</p>
-            <p className="font-medium">{property.type}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Units</p>
-            <p className="font-medium">{property.units}</p>
-          </div>
-          <div className="col-span-2 mt-2">
-            <p className="text-muted-foreground">Valuation</p>
-            <p className="font-medium">${property.value.toLocaleString()}</p>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-end">
-        <Button variant="outline" size="sm">View Details</Button>
-      </CardFooter>
-    </Card>
+      )}
+    </>
   );
 }
 
 export default function PropertiesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [localProperties, setLocalProperties] = useState([...properties]);
   
-  const filteredProperties = properties.filter(
+  const filteredProperties = localProperties.filter(
     (property) =>
       property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       property.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDeleteProperty = (id: string) => {
+    setLocalProperties((prev) => prev.filter((property) => property.id !== id));
+  };
   
   return (
     <AppLayout>
@@ -137,7 +199,11 @@ export default function PropertiesPage() {
       ) : (
         <Grid cols={3}>
           {filteredProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
+            <PropertyCard 
+              key={property.id} 
+              property={property} 
+              onDelete={handleDeleteProperty}
+            />
           ))}
         </Grid>
       )}
