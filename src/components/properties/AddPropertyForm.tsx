@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { Building2 } from "lucide-react";
-import { properties } from "@/lib/data";
+import { properties, Property } from "@/lib/data";
 import { toast } from "sonner";
 
 import {
@@ -42,17 +42,24 @@ const propertyFormSchema = z.object({
   units: z.coerce.number().positive("Units must be a positive number"),
   value: z.coerce.number().positive("Property value must be a positive number"),
   image: z.string().url("Please enter a valid image URL"),
+  description: z.string().optional(),
 });
 
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
 
+interface AddPropertyFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  property?: Property;
+  isEditing?: boolean;
+}
+
 export function AddPropertyForm({ 
   open, 
-  onOpenChange 
-}: { 
-  open: boolean; 
-  onOpenChange: (open: boolean) => void;
-}) {
+  onOpenChange,
+  property,
+  isEditing = false
+}: AddPropertyFormProps) {
   const navigate = useNavigate();
   
   const form = useForm<PropertyFormValues>({
@@ -65,23 +72,48 @@ export function AddPropertyForm({
       units: 1,
       value: 0,
       image: "",
+      description: "",
     },
   });
 
-  const onSubmit = (data: PropertyFormValues) => {
-    // In a real app, we would make an API call here
-    // For demo purposes, we'll simulate adding to the array
-    const newProperty = {
-      id: `p${properties.length + 1}`,
-      ...data,
-    };
+  // Set form values when editing an existing property
+  useEffect(() => {
+    if (isEditing && property) {
+      form.reset({
+        name: property.name,
+        address: property.address,
+        city: property.city,
+        type: property.type,
+        units: property.units,
+        value: property.value,
+        image: property.image,
+        description: property.description || "",
+      });
+    }
+  }, [form, isEditing, property]);
 
-    // This is just for demo purposes and would be replaced with an actual API call
-    console.log("New property:", newProperty);
-    
-    toast.success("Property added successfully", {
-      description: `${data.name} has been added to your properties.`,
-    });
+  const onSubmit = (data: PropertyFormValues) => {
+    if (isEditing && property) {
+      // Update existing property
+      console.log("Updated property:", { ...property, ...data });
+      
+      toast.success("Property updated successfully", {
+        description: `${data.name} has been updated.`,
+      });
+    } else {
+      // Add new property
+      const newProperty = {
+        id: `p${properties.length + 1}`,
+        ...data,
+        addedDate: new Date().toISOString(),
+      };
+
+      console.log("New property:", newProperty);
+      
+      toast.success("Property added successfully", {
+        description: `${data.name} has been added to your properties.`,
+      });
+    }
     
     form.reset();
     onOpenChange(false);
@@ -96,10 +128,12 @@ export function AddPropertyForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            Add New Property
+            {isEditing ? "Edit Property" : "Add New Property"}
           </DialogTitle>
           <DialogDescription>
-            Fill in the details to add a new property to your portfolio.
+            {isEditing 
+              ? "Update the details of your property." 
+              : "Fill in the details to add a new property to your portfolio."}
           </DialogDescription>
         </DialogHeader>
 
@@ -185,7 +219,6 @@ export function AddPropertyForm({
                         min="1" 
                         placeholder="e.g. 24" 
                         {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -205,7 +238,6 @@ export function AddPropertyForm({
                         min="0" 
                         placeholder="e.g. 2500000" 
                         {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -228,11 +260,25 @@ export function AddPropertyForm({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Describe the property..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Add Property</Button>
+              <Button type="submit">{isEditing ? "Update" : "Add"} Property</Button>
             </DialogFooter>
           </form>
         </Form>

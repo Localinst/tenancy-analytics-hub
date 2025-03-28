@@ -66,7 +66,7 @@ export function PropertyDetailDialog({
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Added {formatDistanceToNow(new Date(property.addedDate || Date.now()))} ago</span>
+                <span>Added {property.addedDate ? formatDistanceToNow(new Date(property.addedDate)) : "recently"} ago</span>
               </div>
             </div>
             

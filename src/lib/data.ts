@@ -1,4 +1,3 @@
-
 export interface Property {
   id: string;
   name: string;
@@ -8,6 +7,8 @@ export interface Property {
   units: number;
   value: number;
   image: string;
+  description?: string;
+  addedDate?: string;
 }
 
 export interface Tenant {
